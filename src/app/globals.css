@@ -3,24 +3,72 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --card-bg: #ffffff;
+  --card-border: #e5e7eb;
+  --input-bg: #ffffff;
+  --input-border: #d1d5db;
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --blue-bg: #dbeafe;
+  --green-bg: #dcfce7;
+  --gradient-from: #f0f9ff;
+  --gradient-via: #ffffff;
+  --gradient-to: #f0f9ff;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+[data-theme="dark"] {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --card-bg: #1f2937;
+  --card-border: #374151;
+  --input-bg: #374151;
+  --input-border: #4b5563;
+  --text-primary: #ffffff;
+  --text-secondary: #d1d5db;
+  --blue-bg: rgba(30, 58, 138, 0.3);
+  --green-bg: rgba(20, 83, 45, 0.3);
+  --gradient-from: #111827;
+  --gradient-via: #1f2937;
+  --gradient-to: #111827;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.theme-gradient {
+  background: linear-gradient(135deg, var(--gradient-from), var(--gradient-via), var(--gradient-to));
+  transition: background 0.3s ease;
+}
+
+.theme-card {
+  background: var(--card-bg);
+  border-color: var(--card-border);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.theme-input {
+  background: var(--input-bg);
+  border-color: var(--input-border);
+  color: var(--text-primary);
+  transition: all 0.3s ease;
+}
+
+.theme-text-primary {
+  color: var(--text-primary);
+}
+
+.theme-text-secondary {
+  color: var(--text-secondary);
+}
+
+.theme-blue-bg {
+  background: var(--blue-bg);
+}
+
+.theme-green-bg {
+  background: var(--green-bg);
 }
