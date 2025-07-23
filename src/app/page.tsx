@@ -18,22 +18,27 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen theme-gradient">
+    <div className="min-h-screen theme-gradient relative">
       {/* Header */}
-      <header className="pt-8 pb-4">
-        <div className="max-w-2xl mx-auto px-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-3">
-              <div className="p-3 bg-blue-500 rounded-2xl shadow-lg">
-                <Shield className="w-8 h-8 text-white" />
-              </div>
-              <h1 className="text-3xl font-bold theme-text-primary">WeatherGuard</h1>
+      <header className="pt-16 pb-12">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          {/* Logo and Title - Centered */}
+          <div className="flex items-center justify-center space-x-4 mb-6">
+            <div className="p-4 bg-blue-500 rounded-3xl shadow-lg">
+              <Shield className="w-12 h-12 text-white" />
             </div>
+            <h1 className="text-5xl font-bold theme-text-primary tracking-tight">WeatherGuard</h1>
+          </div>
+          {/* Theme Toggle - Top Right */}
+          <div className="absolute top-8 right-8">
             <ThemeToggle />
           </div>
-          <p className="text-center theme-text-secondary text-lg">
-            Stay protected with intelligent weather alerts
-          </p>
+          {/* Subtitle - Centered */}
+          <div>
+            <p className="theme-text-secondary text-xl font-medium max-w-2xl mx-auto leading-relaxed">
+              Stay protected with intelligent weather alerts
+            </p>
+          </div>
         </div>
       </header>
 

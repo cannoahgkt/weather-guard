@@ -39,3 +39,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local development scripts and configs
+*.ps1
+*.sh
+dev-scripts.json
