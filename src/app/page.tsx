@@ -3,17 +3,44 @@
 import { useState } from 'react';
 import { Cloud, Mail, MapPin, Bell, Shield } from 'lucide-react';
 import ThemeToggle from './components/ThemeToggle';
+import CitySelector from './components/CitySelector';
 
 export default function Home() {
   const [email, setEmail] = useState('');
   const [location, setLocation] = useState('');
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [weatherData, setWeatherData] = useState<any>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email && location) {
+    if (!email || !location) return;
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, location }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to subscribe');
+      }
+
+      setWeatherData(data.currentWeather);
       setIsSubscribed(true);
-      // TODO: Implement API call to save user preferences
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -58,6 +85,12 @@ export default function Home() {
               </p>
             </div>
 
+            {error && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl">
+                <p className="text-red-600 text-sm">{error}</p>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label htmlFor="email" className="block text-sm font-medium theme-text-secondary mb-2">
@@ -81,25 +114,18 @@ export default function Home() {
                 <label htmlFor="location" className="block text-sm font-medium theme-text-secondary mb-2">
                   Location
                 </label>
-                <div className="relative">
-                  <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <input
-                    type="text"
-                    id="location"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    className="w-full pl-12 pr-4 py-4 border rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 placeholder-gray-500 theme-input"
-                    placeholder="London, UK"
-                    required
-                  />
-                </div>
+                <CitySelector
+                  value={location}
+                  onChange={setLocation}
+                />
               </div>
 
               <button
                 type="submit"
-                className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-4 px-6 rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                disabled={isLoading}
+                className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold py-4 px-6 rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none"
               >
-                Start Weather Protection
+                {isLoading ? 'Setting up protection...' : 'Start Weather Protection'}
               </button>
             </form>
 
@@ -117,21 +143,76 @@ export default function Home() {
             </div>
           </div>
         ) : (
-          <div className="theme-card rounded-3xl shadow-xl p-8 border text-center">
-            <div className="p-4 theme-green-bg rounded-2xl w-fit mx-auto mb-4">
-              <Shield className="w-12 h-12 text-green-500" />
-            </div>
-            <h2 className="text-2xl font-semibold theme-text-primary mb-2">
-              You're Protected!
-            </h2>
-            <p className="theme-text-secondary mb-6">
-              Weather alerts for <span className="font-medium">{location}</span> will be sent to{' '}
-              <span className="font-medium">{email}</span>
-            </p>
-            <div className="theme-blue-bg rounded-2xl p-4">
-              <p className="text-blue-700 text-sm">
-                You'll receive notifications for severe weather conditions in your area.
+          <div className="space-y-6">
+            {/* Success Message */}
+            <div className="theme-card rounded-3xl shadow-xl p-8 border text-center">
+              <div className="p-4 theme-green-bg rounded-2xl w-fit mx-auto mb-4">
+                <Shield className="w-12 h-12 text-green-500" />
+              </div>
+              <h2 className="text-2xl font-semibold theme-text-primary mb-2">
+                You're Protected!
+              </h2>
+              <p className="theme-text-secondary mb-4">
+                Weather alerts are now active for <strong>{location}</strong>
               </p>
+              <p className="text-sm theme-text-secondary">
+                We'll send notifications to <strong>{email}</strong>
+              </p>
+            </div>
+
+            {/* Current Weather Display */}
+            {weatherData && (
+              <div className="theme-card rounded-3xl shadow-xl p-8 border">
+                <div className="text-center mb-6">
+                  <h3 className="text-xl font-semibold theme-text-primary mb-2">
+                    Current Weather
+                  </h3>
+                  <p className="theme-text-secondary">
+                    {location}
+                  </p>
+                </div>
+                
+                <div className="flex items-center justify-center space-x-6 mb-6">
+                  <div className="text-center">
+                    <div className="text-4xl font-bold theme-text-primary">
+                      {weatherData.temperature}°C
+                    </div>
+                    <div className="theme-text-secondary capitalize">
+                      {weatherData.description}
+                    </div>
+                  </div>
+                  <div className="p-4 theme-blue-bg rounded-2xl">
+                    <Cloud className="w-12 h-12 text-blue-500" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="text-center p-3 theme-blue-bg rounded-xl">
+                    <div className="font-medium theme-text-primary">Humidity</div>
+                    <div className="theme-text-secondary">{weatherData.humidity}%</div>
+                  </div>
+                  <div className="text-center p-3 theme-blue-bg rounded-xl">
+                    <div className="font-medium theme-text-primary">Wind Speed</div>
+                    <div className="theme-text-secondary">{weatherData.windSpeed} m/s</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Reset Button */}
+            <div className="text-center">
+              <button
+                onClick={() => {
+                  setIsSubscribed(false);
+                  setEmail('');
+                  setLocation('');
+                  setWeatherData(null);
+                  setError('');
+                }}
+                className="text-blue-500 hover:text-blue-600 font-medium transition-colors"
+              >
+                Subscribe another location
+              </button>
             </div>
           </div>
         )}

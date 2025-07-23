@@ -16,6 +16,20 @@
   --gradient-to: #f0f9ff;
 }
 
+/* Custom hover styles for city selector */
+button.group:hover * {
+  color: white !important;
+}
+
+/* Make region headers more visible */
+.region-header {
+  color: white !important; /* White text for light mode */
+}
+
+[data-theme="dark"] .region-header {
+  color: white !important; /* White text for dark mode too */
+}
+
 [data-theme="dark"] {
   --background: #0a0a0a;
   --foreground: #ededed;
