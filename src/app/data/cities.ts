@@ -8,11 +8,11 @@ export const popularCities = [
   { name: 'Frankfurt, Germany', country: 'DE', region: 'Europe' },
   
   // UK
-  { name: 'London, UK', country: 'GB', region: 'Europe' },
-  { name: 'Manchester, UK', country: 'GB', region: 'Europe' },
-  { name: 'Birmingham, UK', country: 'GB', region: 'Europe' },
-  { name: 'Edinburgh, UK', country: 'GB', region: 'Europe' },
-  { name: 'Cardiff, UK', country: 'GB', region: 'Europe' },
+  { name: 'London, GB', country: 'GB', region: 'Europe' },
+  { name: 'Manchester, GB', country: 'GB', region: 'Europe' },
+  { name: 'Birmingham, GB', country: 'GB', region: 'Europe' },
+  { name: 'Edinburgh, GB', country: 'GB', region: 'Europe' },
+  { name: 'Cardiff, GB', country: 'GB', region: 'Europe' },
   
   // Europe
   { name: 'Paris, France', country: 'FR', region: 'Europe' },

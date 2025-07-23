@@ -1,15 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-// Temporary in-memory storage for development
-// In production, this will be replaced with DynamoDB
-const subscriptions: Array<{
-  id: string;
-  email: string;
-  location: string;
-  coordinates?: { lat: number; lon: number };
-  createdAt: string;
-  isActive: boolean;
-}> = [];
+import { createSubscription, getSubscription } from '../../lib/dynamodb';
+import { sendWelcomeEmail } from '../../lib/email';
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,16 +13,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if email already exists
-    const existingSubscription = subscriptions.find(sub => sub.email === email);
-    if (existingSubscription) {
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
       return NextResponse.json(
-        { error: 'Email already subscribed' },
-        { status: 409 }
+        { error: 'Invalid email format' },
+        { status: 400 }
       );
     }
 
     // Validate location by calling weather API
+    console.log('Validating location:', location);
     const weatherResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/weather`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -39,61 +31,113 @@ export async function POST(request: NextRequest) {
     });
 
     if (!weatherResponse.ok) {
+      console.log('Weather API validation failed for location:', location);
       return NextResponse.json(
-        { error: 'Invalid location' },
+        { error: 'Invalid location or weather data unavailable' },
         { status: 400 }
       );
     }
 
     const weatherData = await weatherResponse.json();
+    console.log('Weather data validated successfully:', weatherData.location);
 
-    // Create subscription
-    const subscription = {
-      id: Date.now().toString(),
-      email,
-      location: weatherData.location.name,
-      coordinates: weatherData.location.coordinates,
-      createdAt: new Date().toISOString(),
-      isActive: true
-    };
+    // Parse location to extract city and country
+    const locationParts = location.split(',').map((part: string) => part.trim());
+    const city = locationParts[0];
+    const country = locationParts[1] || '';
 
-    subscriptions.push(subscription);
+    console.log('Creating subscription for:', { email, location, city, country });
 
-    // TODO: In production, this will:
-    // 1. Save to DynamoDB
-    // 2. Send confirmation email via SES
-    // 3. Set up scheduled Lambda for weather monitoring
+    try {
+      // Create subscription in DynamoDB
+      const subscription = await createSubscription({
+        email,
+        city,
+        country,
+        location: weatherData.location.name // Use validated location name
+      });
 
-    return NextResponse.json({
-      success: true,
-      message: 'Successfully subscribed to weather alerts',
-      subscription: {
-        id: subscription.id,
-        email: subscription.email,
-        location: subscription.location,
-        createdAt: subscription.createdAt
-      },
-      currentWeather: weatherData.weather
-    });
+      console.log('Subscription created successfully:', subscription.email);
 
-  } catch (error) {
+      // Send welcome email (non-blocking)
+      sendWelcomeEmail(email, weatherData.location.name).catch(error => {
+        console.error('Failed to send welcome email:', error);
+        // Don't fail the API call if email fails
+      });
+
+      return NextResponse.json({
+        success: true,
+        message: 'Successfully subscribed to weather alerts',
+        subscription: {
+          email: subscription.email,
+          location: subscription.location,
+          subscribedAt: subscription.subscribedAt,
+          isActive: subscription.isActive
+        },
+        currentWeather: weatherData.weather
+      });
+
+    } catch (dbError: any) {
+      console.error('Database error:', dbError);
+      
+      // If subscription already exists, try to reactivate it
+      if (dbError.message?.includes('already exists') || dbError.name === 'ConditionalCheckFailedException') {
+        console.log('Subscription already exists, attempting to reactivate...');
+        
+        // You could implement reactivation logic here
+        return NextResponse.json({
+          success: true,
+          message: 'Subscription already exists and is active',
+          currentWeather: weatherData.weather
+        });
+      }
+      
+      throw dbError; // Re-throw if it's not a duplicate error
+    }
+
+  } catch (error: any) {
     console.error('Subscription error:', error);
-    return NextResponse.json(
-      { error: 'Failed to create subscription' },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      error: 'Failed to create subscription',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    }, { status: 500 });
   }
 }
 
-export async function GET() {
-  // Development endpoint to view subscriptions
-  return NextResponse.json({
-    subscriptions: subscriptions.map(sub => ({
-      id: sub.id,
-      email: sub.email,
-      location: sub.location,
-      createdAt: sub.createdAt,
-      isActive: sub.isActive
-    }))
-  });
+// Development endpoint to view subscriptions
+export async function GET(request: NextRequest) {
+  try {
+    const url = new URL(request.url);
+    const email = url.searchParams.get('email');
+
+    if (email) {
+      // Get specific subscription
+      const subscription = await getSubscription(email);
+      if (!subscription) {
+        return NextResponse.json({ error: 'Subscription not found' }, { status: 404 });
+      }
+      
+      return NextResponse.json({
+        subscription: {
+          email: subscription.email,
+          location: subscription.location,
+          subscribedAt: subscription.subscribedAt,
+          isActive: subscription.isActive
+        }
+      });
+    }
+
+    // For security, don't allow listing all subscriptions in production
+    if (process.env.NODE_ENV === 'production') {
+      return NextResponse.json({ error: 'Not allowed in production' }, { status: 403 });
+    }
+
+    return NextResponse.json({
+      message: 'Use ?email=your@email.com to get specific subscription'
+    });
+
+  } catch (error) {
+    console.error('Get subscription error:', error);
+    return NextResponse.json({ error: 'Failed to get subscription' }, { status: 500 });
+  }
 }
