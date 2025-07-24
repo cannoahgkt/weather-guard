@@ -77,11 +77,11 @@ export async function POST(request: NextRequest) {
         currentWeather: weatherData.weather
       });
 
-    } catch (dbError: any) {
+    } catch (dbError: unknown) {
       console.error('Database error:', dbError);
       
       // If subscription already exists, try to reactivate it
-      if (dbError.message?.includes('already exists') || dbError.name === 'ConditionalCheckFailedException') {
+      if (dbError instanceof Error && (dbError.message?.includes('already exists') || dbError.name === 'ConditionalCheckFailedException')) {
         console.log('Subscription already exists, attempting to reactivate...');
         
         // You could implement reactivation logic here
@@ -95,11 +95,11 @@ export async function POST(request: NextRequest) {
       throw dbError; // Re-throw if it's not a duplicate error
     }
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Subscription error:', error);
     return NextResponse.json({
       error: 'Failed to create subscription',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      details: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : 'Unknown error') : undefined
     }, { status: 500 });
   }
 }

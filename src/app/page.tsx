@@ -150,13 +150,13 @@ export default function Home() {
                 <Shield className="w-12 h-12 text-green-500" />
               </div>
               <h2 className="text-2xl font-semibold theme-text-primary mb-2">
-                You're Protected!
+                You&apos;re Protected!
               </h2>
               <p className="theme-text-secondary mb-4">
                 Weather alerts are now active for <strong>{location}</strong>
               </p>
               <p className="text-sm theme-text-secondary">
-                We'll send notifications to <strong>{email}</strong>
+                We&apos;ll send notifications to <strong>{email}</strong>
               </p>
             </div>
 

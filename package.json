@@ -4,10 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "NEXT_TELEMETRY_DISABLED=1 next build",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "postbuild": "echo 'Build completed successfully'"
+    "postbuild": "echo Build completed successfully"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.848.0",
