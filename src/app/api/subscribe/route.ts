@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createSubscription, getSubscription } from '../../lib/dynamodb';
+import { createSubscriptionSafe, getSubscriptionSafe } from '../../lib/database';
 import { sendWelcomeEmail } from '../../lib/email';
 
 export async function POST(request: NextRequest) {
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
 
     try {
       // Create subscription in DynamoDB
-      const subscription = await createSubscription({
+      const subscription = await createSubscriptionSafe({
         email,
         city,
         country,
@@ -112,7 +112,7 @@ export async function GET(request: NextRequest) {
 
     if (email) {
       // Get specific subscription
-      const subscription = await getSubscription(email);
+      const subscription = await getSubscriptionSafe(email);
       if (!subscription) {
         return NextResponse.json({ error: 'Subscription not found' }, { status: 404 });
       }
