@@ -48,21 +48,21 @@ export default function Home() {
     <div className="min-h-screen theme-gradient relative">
       {/* Header */}
       <header className="pt-16 pb-12">
-        <div className="max-w-4xl mx-auto px-6 text-center">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
           {/* Logo and Title - Centered */}
-          <div className="flex items-center justify-center space-x-4 mb-6">
-            <div className="p-4 bg-blue-500 rounded-3xl shadow-lg">
-              <Shield className="w-12 h-12 text-white" />
+          <div className="flex items-center justify-center space-x-3 sm:space-x-4 mb-6">
+            <div className="p-3 sm:p-4 bg-blue-500 rounded-3xl shadow-lg">
+              <Shield className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
             </div>
-            <h1 className="text-5xl font-bold theme-text-primary tracking-tight">WeatherGuard</h1>
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold theme-text-primary tracking-tight">WeatherGuard</h1>
           </div>
           {/* Theme Toggle - Top Right */}
-          <div className="absolute top-8 right-8">
+          <div className="absolute top-6 right-4 sm:top-8 sm:right-8">
             <ThemeToggle />
           </div>
           {/* Subtitle - Centered */}
           <div>
-            <p className="theme-text-secondary text-xl font-medium max-w-2xl mx-auto leading-relaxed">
+            <p className="theme-text-secondary text-lg sm:text-xl font-medium max-w-2xl mx-auto leading-relaxed px-2">
               Stay protected with intelligent weather alerts
             </p>
           </div>
@@ -70,7 +70,7 @@ export default function Home() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-lg mx-auto px-6 py-8">
+      <main className="max-w-lg mx-auto px-4 sm:px-6 py-8">
         {!isSubscribed ? (
           <div className="theme-card rounded-3xl shadow-xl p-8 border">
             <div className="text-center mb-8">
