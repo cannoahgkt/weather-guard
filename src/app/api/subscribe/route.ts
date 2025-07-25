@@ -109,9 +109,16 @@ export async function GET(request: NextRequest) {
   try {
     const url = new URL(request.url);
     const email = url.searchParams.get('email');
+    
+    // Log the request for debugging
+    console.log('GET /api/subscribe called:', {
+      email,
+      userAgent: request.headers.get('user-agent'),
+      referer: request.headers.get('referer')
+    });
 
     if (email) {
-      // Get specific subscription
+      // Get specific subscription - allowed in production
       const subscription = await getSubscriptionSafe(email);
       if (!subscription) {
         return NextResponse.json({ error: 'Subscription not found' }, { status: 404 });
@@ -127,17 +134,26 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // For security, don't allow listing all subscriptions in production
+    // Don't allow listing all subscriptions in production, but provide helpful message
     if (process.env.NODE_ENV === 'production') {
-      return NextResponse.json({ error: 'Not allowed in production' }, { status: 403 });
+      return NextResponse.json({ 
+        error: 'Email parameter required',
+        message: 'Use ?email=your@email.com to get specific subscription',
+        method: 'GET',
+        endpoint: '/api/subscribe'
+      }, { status: 400 });
     }
 
     return NextResponse.json({
-      message: 'Use ?email=your@email.com to get specific subscription'
+      message: 'Use ?email=your@email.com to get specific subscription',
+      availableParams: ['email']
     });
 
   } catch (error) {
     console.error('Get subscription error:', error);
-    return NextResponse.json({ error: 'Failed to get subscription' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Failed to get subscription',
+      details: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : 'Unknown error') : undefined
+    }, { status: 500 });
   }
 }
